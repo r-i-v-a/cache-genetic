@@ -12,4 +12,13 @@ with open('../data/kittens.in', 'r') as file:
 	numCaches = int(line[3])
 	cacheSize = int(line[4])
 
-	print(numVideos, numEndpoints, numRequests, numCaches, cacheSize)
+	print('\n# videos:', numVideos)
+	print('# endpoints:', numEndpoints)
+	print('# request descriptions:', numRequests)
+	print('# caches:', numCaches)
+	print('# cache size:', cacheSize)
+
+	line = file.readline().strip().split(' ')
+	videoSizes = np.array(list(map(int, line)))
+
+	print('\nvideo sizes:', videoSizes)
