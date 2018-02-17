@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import numpy as np
+import random
 import sys
 
 ITERATIONS = 100
-POPULATION_SIZE = 3
+POPULATION_SIZE = 4
 POPULATION = []
 
 def readLineAsNumbers(file):
@@ -82,13 +83,21 @@ def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
 	return (score * 1000) // totalRequests
 
 def startPopulation(numCaches, numVideos):
-	POPULATION = []
-
 	for i in range(POPULATION_SIZE):
 		solution = []
-		for i in range(numCaches):
+		for j in range(numCaches):
 			solution.append(set())
 		POPULATION.append(solution)
+
+	print('\npopulation:', POPULATION)
+
+def mutateCache(cache, numVideos):
+	cache.add(random.randrange(numVideos))
+
+def mutatePopulation(numVideos):
+	for i in range(POPULATION_SIZE):
+		for j in range(numCaches):
+			mutateCache(POPULATION[i][j], numCaches)
 
 	print('\npopulation:', POPULATION)
 
@@ -117,3 +126,4 @@ with open('../data/me_at_the_zoo.in', 'r') as file:
 	print('\nrequests:', requests)
 
 	startPopulation(numCaches, numVideos)
+	mutatePopulation(numVideos)
