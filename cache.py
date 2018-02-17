@@ -9,8 +9,8 @@ def readLineAsNumbers(file):
 def readVideoSizes(file):
 	return np.array(readLineAsNumbers(file))
 
-def readCacheLatency(file, numEndpoints):
-	cacheLatency = []
+def readTimeSaved(file, numEndpoints):
+	timeSaved = []
 
 	for i in range(numEndpoints):
 		line = readLineAsNumbers(file)
@@ -23,9 +23,9 @@ def readCacheLatency(file, numEndpoints):
 			endpointCaches.append((line[0], dataCenterLatency - line[1]))
 
 		endpointCaches = sorted(endpointCaches, key=lambda x: x[1], reverse=True)
-		cacheLatency.append(endpointCaches)
+		timeSaved.append(endpointCaches)
 
-	return cacheLatency
+	return timeSaved
 
 def readRequests(file, numRequests):
 	requests = []
@@ -35,6 +35,48 @@ def readRequests(file, numRequests):
 		requests.append((line[0], line[1], line[2]))
 
 	return requests
+
+def readSolution(numCaches):
+	solution = []
+
+	for i in range(numCaches):
+		solution.append(set())
+
+	with open('../data/solution.in', 'r') as file:
+		line = readLineAsNumbers(file)
+		cachesUsed = line[0]
+
+		for i in range(cachesUsed):
+			line = readLineAsNumbers(file)
+			for j in range(1, len(line)):
+				solution[line[0]].add(line[j])
+
+	print('\ninput solution:', solution)
+	return solution
+
+def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
+
+	# score = 0, if any cache is over capacity
+	for i in range(len(solution)):
+		full = 0
+		for video in solution[i]:
+			full += videoSizes[video]
+			if (full > cacheSize):
+				print('\ncache', i, 'is full!')
+				return 0
+
+	# score = average time saved, if contents are valid
+	score = 0
+	totalRequests = 0
+
+	for i in range(len(requests)):
+		totalRequests += requests[i][2]
+		for cache in timeSaved[requests[i][1]]:
+			if (requests[i][0] in solution[cache[0]]):
+				score += cache[1] * requests[i][2]
+				break
+
+	return (score * 1000) // totalRequests
 
 with open('../data/me_at_the_zoo.in', 'r') as file:
 	line = readLineAsNumbers(file)
@@ -54,9 +96,11 @@ with open('../data/me_at_the_zoo.in', 'r') as file:
 	videoSizes = readVideoSizes(file)
 	print('\nvideo sizes:', videoSizes)
 
-	cacheLatency = readCacheLatency(file, numEndpoints)
-	print('\ncache latencies:', cacheLatency)
+	timeSaved = readTimeSaved(file, numEndpoints)
+	print('\ncache latencies:', timeSaved)
 
 	requests = readRequests(file, numRequests)
 	print('\nrequests:', requests)
-	
+
+	score = evaluateSolution(readSolution(numCaches), requests, videoSizes, cacheSize, timeSaved)
+	print('\nscore:', score)
