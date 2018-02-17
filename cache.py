@@ -3,6 +3,10 @@
 import numpy as np
 import sys
 
+ITERATIONS = 100
+POPULATION_SIZE = 3
+POPULATION = []
+
 def readLineAsNumbers(file):
 	return list(map(int, file.readline().strip().split(' ')))
 
@@ -51,7 +55,6 @@ def readSolution(numCaches):
 			for j in range(1, len(line)):
 				solution[line[0]].add(line[j])
 
-	print('\ninput solution:', solution)
 	return solution
 
 def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
@@ -78,6 +81,17 @@ def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
 
 	return (score * 1000) // totalRequests
 
+def startPopulation(numCaches, numVideos):
+	POPULATION = []
+
+	for i in range(POPULATION_SIZE):
+		solution = []
+		for i in range(numCaches):
+			solution.append(set())
+		POPULATION.append(solution)
+
+	print('\npopulation:', POPULATION)
+
 with open('../data/me_at_the_zoo.in', 'r') as file:
 	line = readLineAsNumbers(file)
 
@@ -102,5 +116,4 @@ with open('../data/me_at_the_zoo.in', 'r') as file:
 	requests = readRequests(file, numRequests)
 	print('\nrequests:', requests)
 
-	score = evaluateSolution(readSolution(numCaches), requests, videoSizes, cacheSize, timeSaved)
-	print('\nscore:', score)
+	startPopulation(numCaches, numVideos)
