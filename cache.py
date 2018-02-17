@@ -4,9 +4,10 @@ import numpy as np
 import random
 import sys
 
-ITERATIONS = 100
-POPULATION_SIZE = 4
+ITERATIONS = 10
+POPULATION_SIZE = 1
 POPULATION = []
+SCORES = []
 
 def readLineAsNumbers(file):
 	return list(map(int, file.readline().strip().split(' ')))
@@ -58,16 +59,16 @@ def readSolution(numCaches):
 
 	return solution
 
+def isOverCapacity(cache, videoSizes, cacheSize):
+	used = sum(map(lambda x: videoSizes[x], cache))
+	return used > cacheSize
+
 def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
 
 	# score = 0, if any cache is over capacity
-	for i in range(len(solution)):
-		full = 0
-		for video in solution[i]:
-			full += videoSizes[video]
-			if (full > cacheSize):
-				print('\ncache', i, 'is full!')
-				return 0
+	for cache in solution:
+		if isOverCapacity(cache, videoSizes, cacheSize):
+			return 0
 
 	# score = average time saved, if contents are valid
 	score = 0
@@ -89,8 +90,6 @@ def startPopulation(numCaches, numVideos):
 			solution.append(set())
 		POPULATION.append(solution)
 
-	print('\npopulation:', POPULATION)
-
 def mutateCache(cache, numVideos):
 	cache.add(random.randrange(numVideos))
 
@@ -98,8 +97,6 @@ def mutatePopulation(numVideos):
 	for i in range(POPULATION_SIZE):
 		for j in range(numCaches):
 			mutateCache(POPULATION[i][j], numCaches)
-
-	print('\npopulation:', POPULATION)
 
 with open('../data/me_at_the_zoo.in', 'r') as file:
 	line = readLineAsNumbers(file)
@@ -125,5 +122,20 @@ with open('../data/me_at_the_zoo.in', 'r') as file:
 	requests = readRequests(file, numRequests)
 	print('\nrequests:', requests)
 
-	startPopulation(numCaches, numVideos)
+startPopulation(numCaches, numVideos)
+for i in range(ITERATIONS):
 	mutatePopulation(numVideos)
+	best = 0
+
+	for solution in POPULATION:
+		score = evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved)
+		print('\nsolution:', solution)
+		print('score:', score)
+
+		if (score > best):
+			best = score
+
+	SCORES.append((i, best))
+	print('\niteration, best:', i, best)
+
+print('\nsummary:', SCORES)
