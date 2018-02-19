@@ -4,16 +4,14 @@ import numpy as np
 import random
 import sys
 
+INPUT_FILE = '../data/me_at_the_zoo.in'
 ITERATIONS = 10
-POPULATION_SIZE = 1
 POPULATION = []
+POPULATION_SIZE = 1
 SCORES = []
 
 def readLineAsNumbers(file):
 	return list(map(int, file.readline().strip().split(' ')))
-
-def readVideoSizes(file):
-	return np.array(readLineAsNumbers(file))
 
 def readTimeSaved(file, numEndpoints):
 	timeSaved = []
@@ -90,15 +88,19 @@ def startPopulation(numCaches, numVideos):
 			solution.append(set())
 		POPULATION.append(solution)
 
-def mutateCache(cache, numVideos):
+def mutateCache(cache, numVideos, videoSizes, cacheSize):
 	cache.add(random.randrange(numVideos))
 
-def mutatePopulation(numVideos):
-	for i in range(POPULATION_SIZE):
-		for j in range(numCaches):
-			mutateCache(POPULATION[i][j], numCaches)
+	while (isOverCapacity(cache, videoSizes, cacheSize)):
+		x = random.sample(cache, 1)
+		cache.discard(x[0])
 
-with open('../data/me_at_the_zoo.in', 'r') as file:
+def mutatePopulation(numVideos, videoSizes, cacheSize):
+	for solution in POPULATION:
+		for cache in solution:
+			mutateCache(cache, numVideos, videoSizes, cacheSize)
+
+with open(INPUT_FILE, 'r') as file:
 	line = readLineAsNumbers(file)
 
 	numVideos = line[0]
@@ -113,7 +115,7 @@ with open('../data/me_at_the_zoo.in', 'r') as file:
 	print('# caches:', numCaches)
 	print('# cache size:', cacheSize)
 
-	videoSizes = readVideoSizes(file)
+	videoSizes = readLineAsNumbers(file)
 	print('\nvideo sizes:', videoSizes)
 
 	timeSaved = readTimeSaved(file, numEndpoints)
@@ -123,19 +125,20 @@ with open('../data/me_at_the_zoo.in', 'r') as file:
 	print('\nrequests:', requests)
 
 startPopulation(numCaches, numVideos)
+
 for i in range(ITERATIONS):
-	mutatePopulation(numVideos)
+	mutatePopulation(numVideos, videoSizes, cacheSize)
 	best = 0
 
 	for solution in POPULATION:
 		score = evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved)
-		print('\nsolution:', solution)
+		print('\niteration:', i)
+		print('solution:', solution)
 		print('score:', score)
 
 		if (score > best):
 			best = score
 
 	SCORES.append((i, best))
-	print('\niteration, best:', i, best)
 
 print('\nsummary:', SCORES)
