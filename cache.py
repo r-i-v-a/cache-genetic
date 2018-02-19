@@ -5,9 +5,9 @@ import random
 import sys
 
 INPUT_FILE = '../data/me_at_the_zoo.in'
-ITERATIONS = 10
+ITERATIONS = 2
 POPULATION = []
-POPULATION_SIZE = 1
+POPULATION_SIZE = 10
 SCORES = []
 
 def readLineAsNumbers(file):
@@ -40,23 +40,6 @@ def readRequests(file, numRequests):
 
 	return requests
 
-def readSolution(numCaches):
-	solution = []
-
-	for i in range(numCaches):
-		solution.append(set())
-
-	with open('../data/solution.in', 'r') as file:
-		line = readLineAsNumbers(file)
-		cachesUsed = line[0]
-
-		for i in range(cachesUsed):
-			line = readLineAsNumbers(file)
-			for j in range(1, len(line)):
-				solution[line[0]].add(line[j])
-
-	return solution
-
 def isOverCapacity(cache, videoSizes, cacheSize):
 	used = sum(map(lambda x: videoSizes[x], cache))
 	return used > cacheSize
@@ -64,8 +47,9 @@ def isOverCapacity(cache, videoSizes, cacheSize):
 def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
 
 	# score = 0, if any cache is over capacity
-	for cache in solution:
+	for cache in solution['caches']:
 		if isOverCapacity(cache, videoSizes, cacheSize):
+			print('cache is over capacity:', cache)
 			return 0
 
 	# score = average time saved, if contents are valid
@@ -75,7 +59,7 @@ def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
 	for i in range(len(requests)):
 		totalRequests += requests[i][2]
 		for cache in timeSaved[requests[i][1]]:
-			if (requests[i][0] in solution[cache[0]]):
+			if (requests[i][0] in solution['caches'][cache[0]]):
 				score += cache[1] * requests[i][2]
 				break
 
@@ -83,9 +67,13 @@ def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
 
 def startPopulation(numCaches, numVideos):
 	for i in range(POPULATION_SIZE):
-		solution = []
+		solution = {}
+		solution['caches'] = []
+		solution['score'] = 0
+
 		for j in range(numCaches):
-			solution.append(set())
+			solution['caches'].append(set())
+
 		POPULATION.append(solution)
 
 def mutateCache(cache, numVideos, videoSizes, cacheSize):
@@ -97,7 +85,7 @@ def mutateCache(cache, numVideos, videoSizes, cacheSize):
 
 def mutatePopulation(numVideos, videoSizes, cacheSize):
 	for solution in POPULATION:
-		for cache in solution:
+		for cache in solution['caches']:
 			mutateCache(cache, numVideos, videoSizes, cacheSize)
 
 with open(INPUT_FILE, 'r') as file:
@@ -128,17 +116,14 @@ startPopulation(numCaches, numVideos)
 
 for i in range(ITERATIONS):
 	mutatePopulation(numVideos, videoSizes, cacheSize)
-	best = 0
 
 	for solution in POPULATION:
-		score = evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved)
-		print('\niteration:', i)
-		print('solution:', solution)
-		print('score:', score)
+		solution['score'] = evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved)
 
-		if (score > best):
-			best = score
+	POPULATION = sorted(POPULATION, key=lambda x: x['score'], reverse=True)
+	SCORES.append((i, POPULATION[0]['score']))
 
-	SCORES.append((i, best))
+	print('\niteration:', i)
+	print('population:', POPULATION)
 
 print('\nsummary:', SCORES)
