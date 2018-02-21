@@ -6,8 +6,8 @@ import sys
 
 INPUT_FILE = '../data/me_at_the_zoo.in'
 
-ITERATIONS = 2
-POPULATION_SIZE = 2
+ITERATIONS = 100
+POPULATION_SIZE = 100
 
 POPULATION = []
 BEST = []
@@ -89,7 +89,12 @@ def crossoverSolutions(a, b, numCaches):
 	offspring['score'] = 0
 
 	for i in range(numCaches):
-		offspring['caches'].append((a, b)[random.randrange(1)]['caches'][i])
+		parents = (a, b)
+		offspring['caches'].append(parents[random.randrange(2)]['caches'][i])
+
+	print('\nparent 1:', a)
+	print('parent 2:', b)
+	print('offspring:', offspring)
 
 	return offspring
 
@@ -106,6 +111,16 @@ def makeNextGeneration(numVideos, videoSizes, numCaches, cacheSize):
 			mutateCache(cache, numVideos, videoSizes, cacheSize)
 
 	return next
+
+def printPopulation():
+	for solution in POPULATION:
+		print('\nscore:', solution['score'])
+		print('caches:', solution['caches'])
+
+def printSummary():
+	print('\nsummary:')
+	for entry in BEST:
+		print(entry[0], ' -- ', entry[1]['score'])
 
 with open(INPUT_FILE, 'r') as file:
 	line = readLineAsNumbers(file)
@@ -143,6 +158,6 @@ for i in range(ITERATIONS):
 	BEST.append((i, POPULATION[0]))
 
 	print('\niteration:', i)
-	print('population:', POPULATION)
+	printPopulation()
 
-print('\nbest:', BEST)
+printSummary()
