@@ -5,14 +5,18 @@ import random
 import sys
 
 INPUT_FILE = '../data/me_at_the_zoo.in'
-ITERATIONS = 2
-POPULATION = []
-POPULATION_SIZE = 10
-SCORES = []
 
+ITERATIONS = 2
+POPULATION_SIZE = 2
+
+POPULATION = []
+BEST = []
+
+# parse input line
 def readLineAsNumbers(file):
 	return list(map(int, file.readline().strip().split(' ')))
 
+# parse input -- time saved for some endpoint, cache
 def readTimeSaved(file, numEndpoints):
 	timeSaved = []
 
@@ -31,6 +35,7 @@ def readTimeSaved(file, numEndpoints):
 
 	return timeSaved
 
+# parse input -- request descriptions
 def readRequests(file, numRequests):
 	requests = []
 
@@ -40,23 +45,26 @@ def readRequests(file, numRequests):
 
 	return requests
 
+# test if video set exceeds cache capacity
 def isOverCapacity(cache, videoSizes, cacheSize):
 	used = sum(map(lambda x: videoSizes[x], cache))
 	return used > cacheSize
 
+# score for candidate solution: average time saved
 def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
 	score = 0
 	totalRequests = 0
 
-	for i in range(len(requests)):
-		totalRequests += requests[i][2]
-		for cache in timeSaved[requests[i][1]]:
-			if (requests[i][0] in solution['caches'][cache[0]]):
-				score += cache[1] * requests[i][2]
+	for request in requests:
+		totalRequests += request[2]
+		for cache in timeSaved[request[1]]:
+			if (request[0] in solution['caches'][cache[0]]):
+				score += cache[1] * request[2]
 				break
 
 	return (score * 1000) // totalRequests
 
+# initialize population -- empty caches
 def startPopulation(numCaches, numVideos):
 	for i in range(POPULATION_SIZE):
 		solution = {}
@@ -75,10 +83,29 @@ def mutateCache(cache, numVideos, videoSizes, cacheSize):
 		x = random.sample(cache, 1)
 		cache.discard(x[0])
 
-def mutatePopulation(numVideos, videoSizes, cacheSize):
-	for solution in POPULATION:
+def crossoverSolutions(a, b, numCaches):
+	offspring = {}
+	offspring['caches'] = []
+	offspring['score'] = 0
+
+	for i in range(numCaches):
+		offspring['caches'].append((a, b)[random.randrange(1)]['caches'][i])
+
+	return offspring
+
+def makeNextGeneration(numVideos, videoSizes, numCaches, cacheSize):
+	next = []
+
+	for i in range(POPULATION_SIZE):
+		a = random.randrange(POPULATION_SIZE // 2)
+		b = random.randrange(POPULATION_SIZE // 2)
+		next.append(crossoverSolutions(POPULATION[a], POPULATION[b], numCaches))
+
+	for solution in next:
 		for cache in solution['caches']:
 			mutateCache(cache, numVideos, videoSizes, cacheSize)
+
+	return next
 
 with open(INPUT_FILE, 'r') as file:
 	line = readLineAsNumbers(file)
@@ -107,15 +134,15 @@ with open(INPUT_FILE, 'r') as file:
 startPopulation(numCaches, numVideos)
 
 for i in range(ITERATIONS):
-	mutatePopulation(numVideos, videoSizes, cacheSize)
+	POPULATION = makeNextGeneration(numVideos, videoSizes, numCaches, cacheSize)
 
 	for solution in POPULATION:
 		solution['score'] = evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved)
 
 	POPULATION = sorted(POPULATION, key=lambda x: x['score'], reverse=True)
-	SCORES.append((i, POPULATION[0]['score']))
+	BEST.append((i, POPULATION[0]))
 
 	print('\niteration:', i)
 	print('population:', POPULATION)
 
-print('\nsummary:', SCORES)
+print('\nbest:', BEST)
