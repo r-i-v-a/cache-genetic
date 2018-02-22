@@ -7,8 +7,8 @@ import sys
 INPUT_FILE = '../data/me_at_the_zoo.in'
 
 ITERATIONS = 1000
-POPULATION_SIZE = 50
-KEEP_DISCARD = 10
+POPULATION_SIZE = 100
+KEEP_DISCARD = 20
 
 POPULATION = []
 BEST = []
@@ -54,10 +54,12 @@ def isOverCapacity(cache, videoSizes, cacheSize):
 # score for candidate solution: average time saved
 def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
 
+	'''
 	for cache in solution['caches']:
 		if isOverCapacity(cache, videoSizes, cacheSize):
 			print ('\ncache is over capacity!')
 			return 0
+	'''
 
 	score = 0
 	totalRequests = 0
@@ -109,6 +111,7 @@ def crossoverSolutions(a, b, numCaches):
 
 	return offspring
 
+# next -- keep top n, discard bottom n, recombine to create the rest
 def makeNextGeneration(numVideos, videoSizes, numCaches, cacheSize):
 	next = []
 
@@ -125,16 +128,13 @@ def makeNextGeneration(numVideos, videoSizes, numCaches, cacheSize):
 
 	return next
 
+# print all members of current population
 def printPopulation():
 	for solution in POPULATION:
 		print('\nscore:', solution['score'])
 		print('caches:', solution['caches'])
 
-def printSummary():
-	print('\nsummary:')
-	for entry in BEST:
-		print(entry[0], ' -- ', entry[1]['score'])
-
+# read input
 with open(INPUT_FILE, 'r') as file:
 	line = readLineAsNumbers(file)
 
@@ -159,7 +159,9 @@ with open(INPUT_FILE, 'r') as file:
 	requests = readRequests(file, numRequests)
 	print('\nrequests:', requests)
 
+# run genetic algorithm
 startPopulation(numCaches, numVideos)
+print('\ntraining:')
 
 for i in range(ITERATIONS):
 	POPULATION = makeNextGeneration(numVideos, videoSizes, numCaches, cacheSize)
@@ -169,6 +171,6 @@ for i in range(ITERATIONS):
 
 	POPULATION = sorted(POPULATION, key=lambda x: x['score'], reverse=True)
 	BEST.append((i, POPULATION[0]))
+	print(i, ' -- ', POPULATION[0]['score'])
 
 printPopulation()
-printSummary()
