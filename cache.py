@@ -6,8 +6,9 @@ import sys
 
 INPUT_FILE = '../data/me_at_the_zoo.in'
 
-ITERATIONS = 100
-POPULATION_SIZE = 100
+ITERATIONS = 1000
+POPULATION_SIZE = 50
+KEEP_DISCARD = 10
 
 POPULATION = []
 BEST = []
@@ -52,6 +53,12 @@ def isOverCapacity(cache, videoSizes, cacheSize):
 
 # score for candidate solution: average time saved
 def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
+
+	for cache in solution['caches']:
+		if isOverCapacity(cache, videoSizes, cacheSize):
+			print ('\ncache is over capacity!')
+			return 0
+
 	score = 0
 	totalRequests = 0
 
@@ -76,6 +83,14 @@ def startPopulation(numCaches, numVideos):
 
 		POPULATION.append(solution)
 
+# make a deep copy of a cache
+def deepCopy(cache):
+	copy = set()
+	for video in cache:
+		copy.add(video)
+	return copy
+
+# apply mutations (incremental additions / swaps)
 def mutateCache(cache, numVideos, videoSizes, cacheSize):
 	cache.add(random.randrange(numVideos))
 
@@ -83,32 +98,30 @@ def mutateCache(cache, numVideos, videoSizes, cacheSize):
 		x = random.sample(cache, 1)
 		cache.discard(x[0])
 
+# choose random combination of caches from 2 parents
 def crossoverSolutions(a, b, numCaches):
 	offspring = {}
 	offspring['caches'] = []
 	offspring['score'] = 0
 
 	for i in range(numCaches):
-		parents = (a, b)
-		offspring['caches'].append(parents[random.randrange(2)]['caches'][i])
-
-	print('\nparent 1:', a)
-	print('parent 2:', b)
-	print('offspring:', offspring)
+		offspring['caches'].append(deepCopy((a, b)[random.randrange(2)]['caches'][i]))
 
 	return offspring
 
 def makeNextGeneration(numVideos, videoSizes, numCaches, cacheSize):
 	next = []
 
-	for i in range(POPULATION_SIZE):
-		a = random.randrange(POPULATION_SIZE // 2)
-		b = random.randrange(POPULATION_SIZE // 2)
-		next.append(crossoverSolutions(POPULATION[a], POPULATION[b], numCaches))
+	for i in range(KEEP_DISCARD):
+		next.append(POPULATION[i])
 
-	for solution in next:
-		for cache in solution['caches']:
+	for i in range(KEEP_DISCARD, POPULATION_SIZE):
+		a = random.randrange(POPULATION_SIZE - KEEP_DISCARD)
+		b = random.randrange(POPULATION_SIZE - KEEP_DISCARD)
+		offspring = crossoverSolutions(POPULATION[a], POPULATION[b], numCaches)
+		for cache in offspring['caches']:
 			mutateCache(cache, numVideos, videoSizes, cacheSize)
+		next.append(offspring)
 
 	return next
 
@@ -157,7 +170,5 @@ for i in range(ITERATIONS):
 	POPULATION = sorted(POPULATION, key=lambda x: x['score'], reverse=True)
 	BEST.append((i, POPULATION[0]))
 
-	print('\niteration:', i)
-	printPopulation()
-
+printPopulation()
 printSummary()
