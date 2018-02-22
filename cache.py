@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
+import matplotlib.pyplot as plt
 import numpy as np
 import random
 import sys
 
 INPUT_FILE = '../data/me_at_the_zoo.in'
 
-ITERATIONS = 1000
+ITERATIONS = 1500
 POPULATION_SIZE = 100
-KEEP_DISCARD = 20
+KEEP = 10
+DISCARD = 25
 
 POPULATION = []
 BEST = []
@@ -111,16 +113,16 @@ def crossoverSolutions(a, b, numCaches):
 
 	return offspring
 
-# next -- keep top n, discard bottom n, recombine to create the rest
+# next -- keep best, discard worst, recombine to create others
 def makeNextGeneration(numVideos, videoSizes, numCaches, cacheSize):
 	next = []
 
-	for i in range(KEEP_DISCARD):
+	for i in range(KEEP):
 		next.append(POPULATION[i])
 
-	for i in range(KEEP_DISCARD, POPULATION_SIZE):
-		a = random.randrange(POPULATION_SIZE - KEEP_DISCARD)
-		b = random.randrange(POPULATION_SIZE - KEEP_DISCARD)
+	for i in range(KEEP, POPULATION_SIZE):
+		a = random.randrange(POPULATION_SIZE - DISCARD)
+		b = random.randrange(POPULATION_SIZE - DISCARD)
 		offspring = crossoverSolutions(POPULATION[a], POPULATION[b], numCaches)
 		for cache in offspring['caches']:
 			mutateCache(cache, numVideos, videoSizes, cacheSize)
@@ -133,6 +135,13 @@ def printPopulation():
 	for solution in POPULATION:
 		print('\nscore:', solution['score'])
 		print('caches:', solution['caches'])
+
+# plot best score attained x generation
+def plotScores():
+	plt.plot(BEST)
+	plt.xlabel('generation')
+	plt.ylabel('best score')
+	plt.show()
 
 # read input
 with open(INPUT_FILE, 'r') as file:
@@ -170,7 +179,8 @@ for i in range(ITERATIONS):
 		solution['score'] = evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved)
 
 	POPULATION = sorted(POPULATION, key=lambda x: x['score'], reverse=True)
-	BEST.append((i, POPULATION[0]))
+	BEST.append(POPULATION[0]['score'])
 	print(i, ' -- ', POPULATION[0]['score'])
 
 printPopulation()
+plotScores()
