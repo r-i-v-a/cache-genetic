@@ -50,8 +50,7 @@ def readRequests(file, numRequests):
 
 # test if video set exceeds cache capacity
 def isOverCapacity(cache, videoSizes, cacheSize):
-	used = sum(map(lambda x: videoSizes[x], cache))
-	return used > cacheSize
+	return sum(map(lambda x: videoSizes[x], cache)) > cacheSize
 
 # score for candidate solution: average time saved
 def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
@@ -172,7 +171,7 @@ for i in range(ITERATIONS):
 
 	POPULATION = sorted(POPULATION, key=lambda x: x['score'], reverse=True)
 	BEST.append(POPULATION[0]['score'])
-	print(i, ' -- ', POPULATION[0]['score'])
+	print(i, '--', POPULATION[0]['score'])
 
 printPopulation()
 plotScores()
