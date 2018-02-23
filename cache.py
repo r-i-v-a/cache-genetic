@@ -55,14 +55,6 @@ def isOverCapacity(cache, videoSizes, cacheSize):
 
 # score for candidate solution: average time saved
 def evaluateSolution(solution, requests, videoSizes, cacheSize, timeSaved):
-
-	'''
-	for cache in solution['caches']:
-		if isOverCapacity(cache, videoSizes, cacheSize):
-			print ('\ncache is over capacity!')
-			return 0
-	'''
-
 	score = 0
 	totalRequests = 0
 
