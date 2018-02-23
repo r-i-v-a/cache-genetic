@@ -7,7 +7,7 @@ import sys
 
 INPUT_FILE = '../data/me_at_the_zoo.in'
 
-ITERATIONS = 1500
+ITERATIONS = 1000
 POPULATION_SIZE = 100
 KEEP = 10
 DISCARD = 25
